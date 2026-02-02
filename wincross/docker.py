@@ -92,4 +92,4 @@ def run_docker(
 
 
 def run_shell(cfg: dict, root: Path, verbose: bool) -> None:
-    run_docker(cfg, root, ["bash", "-l"], True, verbose)
+    run_docker(cfg, root, ["bash", "--noprofile", "--norc"], True, verbose)
