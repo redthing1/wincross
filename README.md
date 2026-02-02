@@ -15,6 +15,7 @@ tools/wincross/bin/wincross init --toolchain tool=/path/to/toolchain:/opt/tool:r
 tools/wincross/bin/wincross configure
 tools/wincross/bin/wincross build
 tools/wincross/bin/wincross test
+tools/wincross/bin/wincross shell
 ```
 
 ## config
@@ -32,3 +33,13 @@ machine config (`.wincross/build_config.json`):
 - `WINCROSS_PROJECT_CONFIG=/path/to/wincross.toml`
 - `--root /path/to/project`
 - `WINCROSS_ROOT=/path/to/project`
+
+## extra args
+
+for option-heavy commands, `--*-args` accepts a single string that is shell-split:
+
+```bash
+tools/wincross/bin/wincross configure --cmake-args "-S /work/project/samples/demo -B /work/project/.wincross/build-demo"
+tools/wincross/bin/wincross build --build-dir /work/project/.wincross/build-demo
+tools/wincross/bin/wincross test --test-dir /work/project/.wincross/build-demo
+```

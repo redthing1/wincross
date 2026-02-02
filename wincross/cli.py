@@ -1,4 +1,5 @@
 import argparse
+import shlex
 from pathlib import Path
 from typing import Any
 
@@ -29,6 +30,13 @@ from .util import (
 from .vcpkg import ensure_vcpkg
 from .wine import ensure_mt_wrapper, ensure_wine_runtime
 from .wrappers import ensure_bin_aliases, ensure_cross_emulator, ensure_winexe_wrappers
+
+
+def _extend_shlex_args(raw_args: list[str] | None) -> list[str]:
+    extra: list[str] = []
+    for raw in raw_args or []:
+        extra.extend(shlex.split(raw))
+    return extra
 
 
 def handle_init(args: argparse.Namespace) -> None:
@@ -115,6 +123,7 @@ def handle_init(args: argparse.Namespace) -> None:
 
     image = args.image or project_cfg.get("image") or DEFAULT_IMAGE
 
+    extra_defaults = _extend_shlex_args(args.cmake_args)
     cfg = {
         "version": 2,
         "image": image,
@@ -129,7 +138,7 @@ def handle_init(args: argparse.Namespace) -> None:
         "env": env,
         "path_prepend": path_prepend,
         "vcpkg": vcpkg_cfg,
-        "cmake_defaults": args.cmake or [],
+        "cmake_defaults": (args.cmake or []) + extra_defaults,
     }
 
     ensure_dir(state)
@@ -166,7 +175,7 @@ def handle_configure(args: argparse.Namespace) -> None:
     if not args.no_vcpkg:
         ensure_vcpkg(cfg, root, args.verbose)
 
-    extra = args.cmake or []
+    extra = (args.cmake or []) + _extend_shlex_args(args.cmake_args)
     run_docker(cfg, root, cmake_args(cfg, root, extra), False, args.verbose)
 
 
@@ -182,8 +191,10 @@ def handle_build(args: argparse.Namespace) -> None:
     ensure_wine_runtime(cfg, root, args.verbose)
     if not args.no_vcpkg:
         ensure_vcpkg(cfg, root, args.verbose)
-    extra = args.build or []
-    run_docker(cfg, root, build_args(cfg, root, extra), False, args.verbose)
+    extra = (args.build or []) + _extend_shlex_args(args.build_args)
+    run_docker(
+        cfg, root, build_args(cfg, root, extra, args.build_dir), False, args.verbose
+    )
 
 
 def handle_test(args: argparse.Namespace) -> None:
@@ -196,8 +207,10 @@ def handle_test(args: argparse.Namespace) -> None:
     ensure_cross_emulator(cfg, root)
     ensure_bin_aliases(cfg, root)
     ensure_wine_runtime(cfg, root, args.verbose)
-    extra = args.ctest or []
-    run_docker(cfg, root, test_args(cfg, root, extra), False, args.verbose)
+    extra = (args.ctest or []) + _extend_shlex_args(args.ctest_args)
+    run_docker(
+        cfg, root, test_args(cfg, root, extra, args.test_dir), False, args.verbose
+    )
 
 
 def handle_shell(args: argparse.Namespace) -> None:
@@ -264,6 +277,9 @@ def main() -> None:
     p_init.add_argument("--env", action="append", help="Environment variable KEY=VALUE")
     p_init.add_argument("--path-prepend", action="append", help="Container PATH prefix")
     p_init.add_argument("--cmake", action="append", help="Default CMake arg")
+    p_init.add_argument(
+        "--cmake-args", action="append", help="Default CMake args (single string)"
+    )
     p_init.add_argument("--vcpkg", action="store_true", help="Enable vcpkg")
     p_init.add_argument(
         "--vcpkg-root", help="vcpkg root directory (default: .wincross/vcpkg)"
@@ -285,17 +301,34 @@ def main() -> None:
         "--no-vcpkg", action="store_true", help="Skip vcpkg bootstrap/install"
     )
     p_configure.add_argument("--cmake", action="append", help="Extra CMake args")
+    p_configure.add_argument(
+        "--cmake-args", action="append", help="Extra CMake args (single string)"
+    )
     p_configure.set_defaults(func=handle_configure)
 
     p_build = sub.add_parser("build", help="Build the project")
     p_build.add_argument(
+        "--build-dir",
+        help="Override build directory (host path or /work/project/...)",
+    )
+    p_build.add_argument(
         "--no-vcpkg", action="store_true", help="Skip vcpkg bootstrap/install"
     )
     p_build.add_argument("--build", action="append", help="Extra build args")
+    p_build.add_argument(
+        "--build-args", action="append", help="Extra build args (single string)"
+    )
     p_build.set_defaults(func=handle_build)
 
     p_test = sub.add_parser("test", help="Run tests")
+    p_test.add_argument(
+        "--test-dir",
+        help="Override build directory for ctest (host path or /work/project/...)",
+    )
     p_test.add_argument("--ctest", action="append", help="Extra ctest args")
+    p_test.add_argument(
+        "--ctest-args", action="append", help="Extra ctest args (single string)"
+    )
     p_test.set_defaults(func=handle_test)
 
     p_shell = sub.add_parser("shell", help="Open an interactive shell in the container")

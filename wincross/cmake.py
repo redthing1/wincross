@@ -34,9 +34,20 @@ def cmake_args(cfg: dict, root: Path, extra: list[str]) -> list[str]:
     return args
 
 
-def build_args(cfg: dict, root: Path, extra: list[str]) -> list[str]:
-    build_dir = Path(cfg["build_dir"]).resolve()
-    container_build = to_container_path(build_dir, root, DEFAULT_CONTAINER_ROOT)
+def build_args(
+    cfg: dict, root: Path, extra: list[str], build_dir_override: str | None
+) -> list[str]:
+    if build_dir_override:
+        if build_dir_override.startswith(DEFAULT_CONTAINER_ROOT):
+            container_build = build_dir_override
+        else:
+            build_dir = Path(build_dir_override)
+            if not build_dir.is_absolute():
+                build_dir = (root / build_dir).resolve()
+            container_build = to_container_path(build_dir, root, DEFAULT_CONTAINER_ROOT)
+    else:
+        build_dir = Path(cfg["build_dir"]).resolve()
+        container_build = to_container_path(build_dir, root, DEFAULT_CONTAINER_ROOT)
     args = ["cmake", "--build", container_build]
     if not any(a in ("--parallel", "-j") or a.startswith("-j") for a in extra):
         args.append("--parallel")
@@ -44,9 +55,20 @@ def build_args(cfg: dict, root: Path, extra: list[str]) -> list[str]:
     return args
 
 
-def test_args(cfg: dict, root: Path, extra: list[str]) -> list[str]:
-    build_dir = Path(cfg["build_dir"]).resolve()
-    container_build = to_container_path(build_dir, root, DEFAULT_CONTAINER_ROOT)
+def test_args(
+    cfg: dict, root: Path, extra: list[str], build_dir_override: str | None
+) -> list[str]:
+    if build_dir_override:
+        if build_dir_override.startswith(DEFAULT_CONTAINER_ROOT):
+            container_build = build_dir_override
+        else:
+            build_dir = Path(build_dir_override)
+            if not build_dir.is_absolute():
+                build_dir = (root / build_dir).resolve()
+            container_build = to_container_path(build_dir, root, DEFAULT_CONTAINER_ROOT)
+    else:
+        build_dir = Path(cfg["build_dir"]).resolve()
+        container_build = to_container_path(build_dir, root, DEFAULT_CONTAINER_ROOT)
     args = ["ctest", "--test-dir", container_build]
     if "--output-on-failure" not in extra:
         args.append("--output-on-failure")
