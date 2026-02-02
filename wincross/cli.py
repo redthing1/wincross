@@ -271,7 +271,7 @@ def main() -> None:
     p_init.add_argument(
         "--vcpkg-cache", help="vcpkg binary cache directory (default: <vcpkg>/bincache)"
     )
-    p_init.add_argument("--vcpkg-triplet", default="x64-windows", help="vcpkg triplet")
+    p_init.add_argument("--vcpkg-triplet", help="vcpkg triplet")
     p_init.add_argument(
         "--vcpkg-packages", action="append", help="vcpkg packages to install"
     )
