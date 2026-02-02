@@ -6,11 +6,14 @@ from .util import to_container_path
 
 def cmake_args(cfg: dict, root: Path, extra: list[str]) -> list[str]:
     args = ["cmake"]
-    args += ["-S", DEFAULT_CONTAINER_ROOT]
-
-    build_dir = Path(cfg["build_dir"]).resolve()
-    container_build = to_container_path(build_dir, root, DEFAULT_CONTAINER_ROOT)
-    args += ["-B", container_build]
+    has_src = any(a == "-S" or a.startswith("-S") for a in extra)
+    has_build = any(a == "-B" or a.startswith("-B") for a in extra)
+    if not has_src:
+        args += ["-S", DEFAULT_CONTAINER_ROOT]
+    if not has_build:
+        build_dir = Path(cfg["build_dir"]).resolve()
+        container_build = to_container_path(build_dir, root, DEFAULT_CONTAINER_ROOT)
+        args += ["-B", container_build]
 
     defaults = cfg.get("cmake_defaults", [])
     combined = defaults + extra
