@@ -1,0 +1,7 @@
+STATE_DIRNAME = ".wincross"
+BUILD_CONFIG_FILENAME = "build_config.json"
+PROJECT_CONFIG_FILENAME = "wincross.toml"
+DEFAULT_CONTAINER_ROOT = "/work/project"
+DEFAULT_IMAGE = "msvc-wine:buildtools-trim"
+DEFAULT_GENERATOR = "Ninja"
+DEFAULT_BUILD_TYPE = "RelWithDebInfo"

@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wincross"
+version = "0.1.0"
+description = "windows cross-build tooling for linux via msvc+wine in docker"
+readme = "README.md"
+requires-python = ">=3.11"
+
+[project.scripts]
+wincross = "wincross.cli:main"
+
+[tool.setuptools]
+packages = ["wincross"]
