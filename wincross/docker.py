@@ -36,9 +36,14 @@ def docker_cmd_base(cfg: dict, root: Path, interactive: bool) -> list[str]:
     container_wine = f"{container_state}/wine"
     container_sccache = f"{container_state}/sccache"
     container_mt = f"{container_state}/mt-wrapper.sh"
+    container_xdg = f"{container_state}/xdg-runtime"
+
+    xdg_host = state_host / "xdg-runtime"
+    xdg_host.mkdir(parents=True, exist_ok=True)
 
     env = {
         "HOME": container_home,
+        "XDG_RUNTIME_DIR": container_xdg,
         "WINEPREFIX": container_wine,
         "WINEDEBUG": "-all",
         "SCCACHE_DIR": container_sccache,

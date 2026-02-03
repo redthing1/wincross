@@ -148,6 +148,7 @@ def handle_init(args: argparse.Namespace) -> None:
     ensure_dir(state / "home")
     ensure_dir(state / "logs")
     ensure_dir(state / "bin")
+    ensure_dir(state / "xdg-runtime")
 
     if vcpkg_cfg.get("enabled", False):
         ensure_dir(Path(vcpkg_cfg["host_root"]))
