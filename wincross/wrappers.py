@@ -63,7 +63,13 @@ def render_winexe_wrapper(exe: str, msvc_env: bool) -> str:
         '  export WINEPATH="${WINEPATH_PREFIX}"',
         "fi",
     ]
-    lines.append('exec /opt/msvc/bin/x64/wine-msvc.sh "$EXE" "$@"')
+    lines += [
+        'MAGIC=$(head -c 2 "$EXE" 2>/dev/null || true)',
+        'if [ "$MAGIC" = "MZ" ]; then',
+        '  exec /opt/msvc/bin/x64/wine-msvc.sh "$EXE" "$@"',
+        "fi",
+        'exec "$EXE" "$@"',
+    ]
     return "\n".join(lines) + "\n"
 
 
