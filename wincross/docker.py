@@ -40,6 +40,7 @@ def docker_cmd_base(cfg: dict, root: Path, interactive: bool) -> list[str]:
 
     xdg_host = state_host / "xdg-runtime"
     xdg_host.mkdir(parents=True, exist_ok=True)
+    xdg_host.chmod(0o700)
 
     env = {
         "HOME": container_home,
